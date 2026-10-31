@@ -10,7 +10,7 @@
 }
 
 :root {
-  --blue: #0a73c9;            /* top bar and side tabs (same as ReStore) */
+  --blue: #39688e;            /* top bar and side tabs (same as ReStore) */
   --series-tps: #1f77b4;      /* TPS line */
   --event-checkpoint: #eb6834;/* checkpoint lines (orange) */
   --event-vacuum: #1baf7a;    /* vacuum lines (aqua) */
@@ -34,7 +34,7 @@ a:hover { text-decoration: none; }
   display: flex; flex-direction: column; gap: 12px; }
 #left-sidebar a { display: block; background: var(--blue); color: rgba(255, 255, 255, .9); writing-mode: vertical-rl;
   text-align: center; font-size: 1.4rem; font-weight: bold; padding: 18px 8px; border-radius: 0 10px 10px 0; text-decoration: none; }
-#left-sidebar a:hover, #left-sidebar a.active { color: #fff; background: #085ea6; }
+#left-sidebar a:hover, #left-sidebar a.active { color: #fff; background: #39688e; }
 @media (max-width: 991px) { #left-sidebar { display: none; } }
 
 /* ---- Page sections ---- */
