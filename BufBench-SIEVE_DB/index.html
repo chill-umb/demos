@@ -4,37 +4,37 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>BufBench &amp; SIEVE_DB</title>
-  <style>
-    body { font-family: Georgia, serif; max-width: 760px; margin: 60px auto; padding: 0 20px; color: #111; }
-    h1 { font-weight: normal; font-size: 2.4rem; }
-    h2 { font-weight: normal; margin-top: 36px; }
-    li { font-size: 1.1rem; margin: 8px 0; }
-  </style>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <p><a href="../">← All CHiLL Lab demos</a></p>
+  <section>
+    <div class="container">
+      <h2 class="section-title">BufBench &amp; SIEVE_DB</h2>
+      <p class="lead text-center">
+        See inside PostgreSQL's buffer pool: how checkpoints and vacuum slow it down,
+        and how replacement policies like SIEVE_DB keep the right pages in memory.
+      </p>
 
-  <h1>BufBench &amp; SIEVE_DB</h1>
-  <p>
-    See inside PostgreSQL's buffer pool: how checkpoints and vacuum slow it down,
-    and how replacement policies like SIEVE_DB keep the right pages in memory.
-  </p>
+      <div class="cards">
+        <div class="card-link"><h2>Live Monitor</h2><p>Coming soon.</p></div>
+      </div>
 
-  <h2>Demo</h2>
-  <ul>
-    <li>Live Monitor (coming soon)</li>
-  </ul>
+      <h3 class="sub-title" id="publications">Publications</h3>
+      <ul style="font-size:1.2rem">
+        <li>Aroma Hoque, Tarikul Islam Papon. <i>BufBench: A Benchmarking Framework for Buffer Pool Analysis in PostgreSQL.</i> TPCTC 2026.
+          [<a href="https://aroma058.github.io/TPCTC26_paper_bufbench.pdf">PDF</a>]
+          [<a href="https://github.com/chill-umb/BufBench">Code</a>]</li>
+        <li>Aroma Hoque, Tarikul Islam Papon. <i>SIEVE_DB: A Lightweight &amp; Fast Page Replacement Policy for Database Bufferpools.</i> EDBT 2027.
+          [<a href="https://github.com/chill-umb/SIEVE_DB">Code</a>]</li>
+      </ul>
 
-  <h2>Publications</h2>
-  <ul>
-    <li>Aroma Hoque, Tarikul Islam Papon. <i>BufBench: A Benchmarking Framework for Buffer Pool Analysis in PostgreSQL.</i> TPCTC 2026.
-      [<a href="https://aroma058.github.io/TPCTC26_paper_bufbench.pdf">PDF</a>]
-      [<a href="https://github.com/chill-umb/BufBench">Code</a>]</li>
-    <li>Aroma Hoque, Tarikul Islam Papon. <i>SIEVE_DB: A Lightweight &amp; Fast Page Replacement Policy for Database Bufferpools.</i> EDBT 2027.
-      [<a href="https://github.com/chill-umb/SIEVE_DB">Code</a>]</li>
-  </ul>
+      <h3 class="sub-title" id="team">The Team</h3>
+      <p class="text-center">Aroma Hoque and Tarikul Islam Papon, CHiLL Lab, University of Massachusetts Boston</p>
+    </div>
+  </section>
 
-  <h2>The Team</h2>
-  <p>Aroma Hoque and Tarikul Islam Papon, CHiLL Lab, University of Massachusetts Boston</p>
+  <!-- Adds the blue top bar, the side tab and the footer with logos -->
+  <script type="module" src="js/nav.js"></script>
 </body>
 </html>
