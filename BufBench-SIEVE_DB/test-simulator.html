@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Simulator test - BufBench &amp; SIEVE_DB</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <section>
+    <div class="container">
+      <h2 class="section-title">Simulator Test</h2>
+      <p class="sub-note">
+        Runs 5 simulated minutes (300 seconds) and shows the averages and every checkpoint and vacuum,
+        like BufBench's interference report.
+      </p>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend"><span class="input-group-text">Workload</span></div>
+            <select class="custom-select" id="workload"></select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend"><span class="input-group-text">Policy</span></div>
+            <select class="custom-select" id="policy">
+              <option value="clock">CLOCK</option><option value="lru">LRU</option>
+              <option value="cflru">CFLRU</option><option value="lruwsr">LRU-WSR</option>
+              <option value="sieve">SIEVE</option><option value="sieve_db">SIEVE_DB</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <button id="run" class="btn btn-info btn-block" style="font-size:1.18rem">Run 300 seconds</button>
+        </div>
+      </div>
+
+      <p class="summary-line" id="summary">Press "Run 300 seconds".</p>
+
+      <table class="metrics-table">
+        <thead><tr><th>Time (s)</th><th>Event</th><th>TPS Before</th><th>TPS During</th><th>Drop (%)</th><th>Recovery (s)</th></tr></thead>
+        <tbody id="events"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script type="module" src="js/nav.js"></script>
+  <script type="module">
+    import { Simulator } from "./js/simulator.js";
+    import { InterferenceAnalyzer } from "./js/interference.js";
+    import { WORKLOADS } from "./js/workload.js";
+    import { METRICS } from "./js/metrics.js";
+
+    const $ = (id) => document.getElementById(id);
+    $("workload").innerHTML = Object.entries(WORKLOADS)
+      .map(([key, w]) => `<option value="${key}">${w.label}</option>`).join("");
+
+    $("run").addEventListener("click", () => {
+      const sim = new Simulator({ workload: $("workload").value, policy: $("policy").value });
+      const analyzer = new InterferenceAnalyzer();
+      const rows = [];
+      for (let i = 0; i < 300; i++) {
+        const row = sim.tick();          // one simulated second
+        rows.push(row);
+        analyzer.add(row);
+      }
+
+      // Check: every row must have all 34 BufBench metrics
+      const missing = METRICS.map((m) => m.name).filter((n) => !(n in rows[0]));
+
+      const after = rows.slice(30);      // skip the first 30 s while the buffer fills up
+      const avg = (name) => after.reduce((sum, r) => sum + r[name], 0) / after.length;
+      const last = rows[rows.length - 1];
+      $("summary").innerHTML =
+        `Average TPS: <b>${Math.round(avg("tps")).toLocaleString()}</b> &nbsp; ` +
+        `Hit rate: <b>${avg("hit_rate_pct").toFixed(1)}%</b> &nbsp; ` +
+        `Checkpoints: <b>${last.num_timed + last.num_requested}</b> &nbsp; ` +
+        `Vacuums: <b>${last.autovacuum_count}</b> &nbsp; ` +
+        `Metrics per row: <b>${Object.keys(last).length}</b>` +
+        (missing.length ? ` &nbsp; <span style="color:red">Missing: ${missing.join(", ")}</span>` : "");
+
+      $("events").innerHTML = analyzer.events.map((e) => `
+        <tr><td>${e.time}</td><td>${e.type === "checkpoint" ? "Checkpoint" : "Vacuum"}</td>
+        <td>${Math.round(e.before).toLocaleString()}</td><td>${e.during.toLocaleString()}</td>
+        <td>${e.drop.toFixed(1)}</td><td>${e.recovery ?? "…"}</td></tr>`).join("");
+    });
+  </script>
+</body>
+</html>
