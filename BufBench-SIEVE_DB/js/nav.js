@@ -24,6 +24,7 @@ export const POLICIES = {
 // Side tabs (only pages that are ready; we add more in later steps)
 const TABS = [
   ["index.html", "Home"],
+  ["monitor.html", "Live Monitor"],
 ];
 
 const here = location.pathname.split("/").pop() || "index.html";
