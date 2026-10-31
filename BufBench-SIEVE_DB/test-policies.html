@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Policy test - BufBench &amp; SIEVE_DB</title>
+  <link rel="stylesheet" href="css/bootstrap.min.css">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <section>
+    <div class="container">
+      <h2 class="section-title">Policy Test</h2>
+      <p class="sub-note">
+        Gives the same 300,000 page requests to every policy and counts what happens.
+        90% of requests go to 10% of the pages, half are writes, and some are scans of 100 pages.
+      </p>
+
+      <div class="row">
+        <div class="col-md-4">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend"><span class="input-group-text">Buffer (pages)</span></div>
+            <select class="custom-select" id="buffer">
+              <option>500</option><option selected>1500</option><option>3000</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="input-group mb-3">
+            <div class="input-group-prepend"><span class="input-group-text">Scans (%)</span></div>
+            <select class="custom-select" id="scans">
+              <option>0</option><option selected>0.25</option><option>1</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <button id="run" class="btn btn-info btn-block" style="font-size:1.18rem">Run test</button>
+        </div>
+      </div>
+
+      <table class="metrics-table">
+        <thead><tr><th>Policy</th><th>Hit rate (%)</th><th>Evictions</th><th>Dirty write-backs</th></tr></thead>
+        <tbody id="results"><tr><td colspan="4">Press "Run test".</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <script type="module" src="js/nav.js"></script>
+  <script type="module">
+    import { POLICY_CLASSES, makePolicy } from "./js/policies/index.js";
+
+    // A simple random number generator with a seed, so every run gives the same requests
+    function makeRandom(seed) {
+      let s = seed;
+      return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296;
+    }
+
+    // Make the list of requests: [pageId, isWrite]
+    function makeRequests(scanPct) {
+      const rnd = makeRandom(42), pages = 20000, requests = [];
+      while (requests.length < 300000) {
+        if (rnd() < scanPct / 100) {                       // a scan: 100 pages in a row
+          const start = Math.floor(rnd() * (pages - 100));
+          for (let k = 0; k < 100; k++) requests.push([start + k, false]);
+        } else {                                           // one page, 90% go to the hot 10%
+          const page = rnd() < 0.9
+            ? Math.floor(rnd() * pages * 0.1)
+            : Math.floor(pages * 0.1 + rnd() * pages * 0.9);
+          requests.push([page, rnd() < 0.5]);
+        }
+      }
+      return requests;
+    }
+
+    document.getElementById("run").addEventListener("click", () => {
+      const buffer = +document.getElementById("buffer").value;
+      const requests = makeRequests(+document.getElementById("scans").value);
+      let html = "";
+      for (const key of Object.keys(POLICY_CLASSES)) {
+        const p = makePolicy(key, buffer);
+        let hits = 0, evictions = 0, writeBacks = 0;
+        for (const [page, isWrite] of requests) {
+          const r = p.access(page, isWrite);
+          if (r.hit) hits++;
+          if (r.evicted !== null) evictions++;
+          if (r.wroteBack) writeBacks++;
+        }
+        html += `<tr><td>${p.name}</td><td>${(100 * hits / requests.length).toFixed(2)}</td>
+                 <td>${evictions.toLocaleString()}</td><td>${writeBacks.toLocaleString()}</td></tr>`;
+      }
+      document.getElementById("results").innerHTML = html;
+    });
+  </script>
+</body>
+</html>
